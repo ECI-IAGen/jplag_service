@@ -1,0 +1,13 @@
+com\eci\iagen\jplag_service\dto\request\PlagiarismRequest.class
+com\eci\iagen\jplag_service\dto\PlagiarismAnalysisResponse.class
+com\eci\iagen\jplag_service\service\GitService.class
+com\eci\iagen\jplag_service\service\JPlagService.class
+com\eci\iagen\jplag_service\dto\response\PlagiarismResponse.class
+com\eci\iagen\jplag_service\dto\SubmissionDto.class
+com\eci\iagen\jplag_service\service\SubmissionService.class
+com\eci\iagen\jplag_service\controller\PlagiarismController.class
+com\eci\iagen\jplag_service\dto\SubmissionComparisonDto.class
+com\eci\iagen\jplag_service\config\JPlagConfig.class
+com\eci\iagen\jplag_service\dto\response\ComparisonResult.class
+com\eci\iagen\jplag_service\JplagServiceApplication.class
+com\eci\iagen\jplag_service\dto\request\SubmissionInfo.class
