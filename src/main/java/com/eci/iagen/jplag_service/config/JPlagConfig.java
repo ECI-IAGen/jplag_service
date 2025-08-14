@@ -1,19 +1,30 @@
 package com.eci.iagen.jplag_service.config;
 
 import org.springframework.boot.context.properties.ConfigurationProperties;
+import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.web.client.RestTemplate;
 
 /**
- * Configuración para JPlag
+ * Configuración para JPlag Service
  */
 @Configuration
 @ConfigurationProperties(prefix = "jplag")
 public class JPlagConfig {
 
     private String tempDirectory = "temp/jplag";
+    private String reportsDirectory = "reports";
     private double minSimilarityThreshold = 0.10;
     private int maxSubmissions = 100;
     private String language = "java";
+
+    /**
+     * Bean para RestTemplate
+     */
+    @Bean
+    public RestTemplate restTemplate() {
+        return new RestTemplate();
+    }
 
     // Getters y Setters
     public String getTempDirectory() {
@@ -22,6 +33,14 @@ public class JPlagConfig {
 
     public void setTempDirectory(String tempDirectory) {
         this.tempDirectory = tempDirectory;
+    }
+
+    public String getReportsDirectory() {
+        return reportsDirectory;
+    }
+
+    public void setReportsDirectory(String reportsDirectory) {
+        this.reportsDirectory = reportsDirectory;
     }
 
     public double getMinSimilarityThreshold() {

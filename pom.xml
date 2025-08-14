@@ -26,9 +26,19 @@
 		<tag/>
 		<url/>
 	</scm>
+
 	<properties>
 		<java.version>21</java.version>
 	</properties>
+
+	<!-- ===== NUEVO: Repositorios adicionales para JPlag ===== -->
+	<repositories>
+		<repository>
+			<id>jitpack.io</id>
+			<url>https://jitpack.io</url>
+		</repository>
+	</repositories>
+
 	<dependencies>
 		<!-- Spring Boot Web Starter -->
 		<dependency>
@@ -36,20 +46,20 @@
 			<artifactId>spring-boot-starter-web</artifactId>
 		</dependency>
 
-		<!-- JPlag para detección de plagio -->
+		<!-- JPlag para detección de plagio (versión actualizada a 6.2.0) -->
 		<dependency>
 			<groupId>de.jplag</groupId>
 			<artifactId>jplag</artifactId>
-			<version>5.0.0</version>
+			<version>6.2.0</version>
 		</dependency>
 		
-		<!-- JPlag Java Language Module -->
+		<!-- JPlag Java Language Support -->
 		<dependency>
 			<groupId>de.jplag</groupId>
 			<artifactId>java</artifactId>
-			<version>5.0.0</version>
+			<version>6.2.0</version>
 		</dependency>
-	
+			
 		<!-- Git support para clonar repositorios -->
 		<dependency>
 			<groupId>org.eclipse.jgit</groupId>
@@ -85,5 +95,4 @@
 			</plugin>
 		</plugins>
 	</build>
-
 </project>

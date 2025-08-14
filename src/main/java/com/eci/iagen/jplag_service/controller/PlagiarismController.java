@@ -1,22 +1,20 @@
 package com.eci.iagen.jplag_service.controller;
 
-import com.eci.iagen.jplag_service.dto.request.PlagiarismRequest;
-import com.eci.iagen.jplag_service.dto.response.PlagiarismResponse;
-import com.eci.iagen.jplag_service.service.JPlagService;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import jakarta.validation.Valid;
+import com.eci.iagen.jplag_service.dto.PlagiarismDetectionRequest;
+import com.eci.iagen.jplag_service.dto.PlagiarismDetectionResponse;
+import com.eci.iagen.jplag_service.service.JPlagDetectionService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import jakarta.validation.Valid;
 import java.util.HashMap;
 import java.util.Map;
 
 /**
- * Controlador REST para detección de plagio
+ * Controlador REST para la detección de plagio usando JPlag
  */
 @RestController
 @RequestMapping("/api/plagiarism")
@@ -26,55 +24,39 @@ public class PlagiarismController {
     private static final Logger logger = LoggerFactory.getLogger(PlagiarismController.class);
 
     @Autowired
-    private JPlagService jplagService;
-
-    @Autowired
-    private ObjectMapper objectMapper;
+    private JPlagDetectionService jplagDetectionService;
 
     /**
-     * Endpoint principal para análisis de plagio
+     * Endpoint principal para la detección de plagio
      */
     @PostMapping("/analyze")
-    public ResponseEntity<?> analyzePlagiarism(@Valid @RequestBody PlagiarismRequest request) {
-        logger.info("Plagiarism analysis requested for assignment: {} with {} submissions",
-                request.getAssignmentId(), request.getSubmissions().size());
+    public ResponseEntity<PlagiarismDetectionResponse> analyzePlagiarism(
+            @Valid @RequestBody PlagiarismDetectionRequest request) {
+        
+        logger.info("Received plagiarism analysis request for assignment: {} with {} submissions", 
+                   request.getAssignmentId(), request.getSubmissions().size());
 
         try {
-            // Validar número mínimo de entregas
-            if (request.getSubmissions().size() < 2) {
-                Map<String, String> error = new HashMap<>();
-                error.put("error", "At least 2 submissions are required for comparison");
-                return ResponseEntity.badRequest().body(error);
+            PlagiarismDetectionResponse response = jplagDetectionService.detectPlagiarism(request);
+            
+            if (response.isSuccess()) {
+                logger.info("Plagiarism analysis completed successfully for assignment: {}", request.getAssignmentId());
+                return ResponseEntity.ok(response);
+            } else {
+                logger.warn("Plagiarism analysis failed for assignment: {}", request.getAssignmentId());
+                return ResponseEntity.badRequest().body(response);
             }
-
-            // Ejecutar análisis
-            PlagiarismResponse response = jplagService.analyzePlagiarism(request);
-
-            // Log del JSON de respuesta que se enviará al API Gateway
-            try {
-                String responseJson = objectMapper.writeValueAsString(response);
-                logger.info("=== JPlag Service Response JSON ===");
-                logger.info("Sending response to API Gateway:");
-                logger.info("{}", responseJson);
-                logger.info("=== End Response JSON ===");
-            } catch (Exception jsonException) {
-                logger.warn("Error serializing response to JSON for logging: {}", jsonException.getMessage());
-            }
-
-            logger.info("Plagiarism analysis completed successfully for assignment: {}",
-                    request.getAssignmentId());
-
-            return ResponseEntity.ok(response);
-
+            
         } catch (Exception e) {
-            logger.error("Error during plagiarism analysis for assignment: {} - Error: {} - StackTrace: {}",
-                    request.getAssignmentId(), e.getMessage(), e.getClass().getSimpleName(), e);
-
-            Map<String, String> error = new HashMap<>();
-            error.put("error", "Internal server error: " + e.getMessage());
-            error.put("assignmentId", String.valueOf(request.getAssignmentId()));
-            error.put("errorType", e.getClass().getSimpleName());
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(error);
+            logger.error("Error during plagiarism analysis for assignment: {}", request.getAssignmentId(), e);
+            
+            PlagiarismDetectionResponse errorResponse = new PlagiarismDetectionResponse();
+            errorResponse.setSuccess(false);
+            errorResponse.setMessage("Error durante el análisis: " + e.getMessage());
+            errorResponse.setAssignmentId(request.getAssignmentId());
+            errorResponse.setAssignmentTitle(request.getAssignmentTitle());
+            
+            return ResponseEntity.internalServerError().body(errorResponse);
         }
     }
 
@@ -82,33 +64,29 @@ public class PlagiarismController {
      * Health check endpoint
      */
     @GetMapping("/health")
-    public ResponseEntity<Map<String, String>> health() {
-        Map<String, String> status = new HashMap<>();
-        status.put("status", "UP");
-        status.put("service", "jplag-service");
-        return ResponseEntity.ok(status);
+    public ResponseEntity<Map<String, String>> healthCheck() {
+        logger.info("Health check requested");
+        
+        Map<String, String> response = new HashMap<>();
+        response.put("status", "UP");
+        response.put("service", "jplag-service");
+        response.put("version", "1.0.0");
+        
+        return ResponseEntity.ok(response);
     }
 
     /**
-     * Health check endpoint compatible con API Gateway
+     * Endpoint para obtener información del servicio
      */
-    @GetMapping("/api/jplag/health")
-    public ResponseEntity<Map<String, String>> healthCompat() {
-        return health();
-    }
-
-    /**
-     * Manejo de errores de validación
-     */
-    @ExceptionHandler(org.springframework.web.bind.MethodArgumentNotValidException.class)
-    public ResponseEntity<Map<String, String>> handleValidationExceptions(
-            org.springframework.web.bind.MethodArgumentNotValidException ex) {
-
-        Map<String, String> errors = new HashMap<>();
-        ex.getBindingResult().getFieldErrors()
-                .forEach(error -> errors.put(error.getField(), error.getDefaultMessage()));
-
-        logger.warn("Validation errors: {}", errors);
-        return ResponseEntity.badRequest().body(errors);
+    @GetMapping("/info")
+    public ResponseEntity<Map<String, Object>> getServiceInfo() {
+        Map<String, Object> info = new HashMap<>();
+        info.put("serviceName", "JPlag Detection Service");
+        info.put("version", "1.0.0");
+        info.put("jplagVersion", "6.2.0");
+        info.put("supportedLanguages", new String[]{"java"});
+        info.put("description", "Microservicio para detección de plagio usando JPlag");
+        
+        return ResponseEntity.ok(info);
     }
 }
