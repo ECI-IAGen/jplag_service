@@ -95,7 +95,8 @@ public class PlagiarismController {
     }
 
     /**
-     * Endpoint de test para generar archivos HTML de comparación para reportes existentes
+     * Endpoint de test para generar archivos HTML de comparación para reportes
+     * existentes
      */
     @PostMapping("/test/generate-comparison-html/{sessionId}")
     public ResponseEntity<Map<String, Object>> testGenerateComparisonHtml(@PathVariable String sessionId) {
@@ -156,14 +157,14 @@ public class PlagiarismController {
             @PathVariable String sessionId,
             @PathVariable String submissionId1,
             @PathVariable String submissionId2) {
-        
-        logger.info("Request for comparison HTML: session={}, submission1={}, submission2={}", 
-                   sessionId, submissionId1, submissionId2);
+
+        logger.info("Request for comparison HTML: session={}, submission1={}, submission2={}",
+                sessionId, submissionId1, submissionId2);
 
         try {
             // Construir el nombre del archivo de comparación
             String comparisonFileName = submissionId1 + "-" + submissionId2 + ".html";
-            
+
             // Verificar si existe el archivo HTML de comparación
             java.nio.file.Path baseComparationDir = java.nio.file.Paths.get("./comparation");
             java.nio.file.Path sessionComparationDir = baseComparationDir.resolve(sessionId);
@@ -177,45 +178,45 @@ public class PlagiarismController {
 
             if (java.nio.file.Files.exists(comparisonFile)) {
                 // Construir la URL para acceder al HTML
-                String htmlUrl = "/reports/comparison/" + sessionId + "/" + submissionId1 + "-" + submissionId2 + ".html";
-                
+                String htmlUrl = "/reports/comparison/" + sessionId + "/" + submissionId1 + "-" + submissionId2
+                        + ".html";
+
                 response.put("success", true);
                 response.put("message", "Comparación HTML disponible");
                 response.put("htmlUrl", htmlUrl);
                 response.put("fileName", comparisonFileName);
                 response.put("exists", true);
-                
+
                 // Información adicional del archivo
                 try {
                     long fileSize = java.nio.file.Files.size(comparisonFile);
                     java.time.LocalDateTime lastModified = java.time.LocalDateTime.ofInstant(
-                        java.nio.file.Files.getLastModifiedTime(comparisonFile).toInstant(),
-                        java.time.ZoneId.systemDefault()
-                    );
-                    
+                            java.nio.file.Files.getLastModifiedTime(comparisonFile).toInstant(),
+                            java.time.ZoneId.systemDefault());
+
                     response.put("fileSize", fileSize);
                     response.put("lastModified", lastModified.toString());
                 } catch (Exception fileInfoError) {
                     logger.warn("Could not get file info for {}: {}", comparisonFile, fileInfoError.getMessage());
                 }
-                
+
                 logger.info("Comparison HTML found: {}", htmlUrl);
                 return ResponseEntity.ok(response);
-                
+
             } else {
                 response.put("success", false);
                 response.put("message", "Comparación HTML no encontrada");
                 response.put("htmlUrl", null);
                 response.put("fileName", comparisonFileName);
                 response.put("exists", false);
-                
+
                 logger.warn("Comparison HTML not found: {}", comparisonFile);
                 return ResponseEntity.notFound().build();
             }
 
         } catch (Exception e) {
-            logger.error("Error getting comparison HTML for session {} and submissions {}-{}: {}", 
-                        sessionId, submissionId1, submissionId2, e.getMessage(), e);
+            logger.error("Error getting comparison HTML for session {} and submissions {}-{}: {}",
+                    sessionId, submissionId1, submissionId2, e.getMessage(), e);
 
             Map<String, Object> response = new HashMap<>();
             response.put("success", false);

@@ -410,7 +410,8 @@ public class JPlagDetectionService {
             comparisonHtmlGenerator.generateComparisonHtmlFiles(reportDir, sessionId);
             logger.info("Generated individual comparison HTML files for session: {}", sessionId);
         } catch (Exception e) {
-            logger.warn("Failed to generate individual comparison HTML files for session {}: {}", sessionId, e.getMessage());
+            logger.warn("Failed to generate individual comparison HTML files for session {}: {}", sessionId,
+                    e.getMessage());
         }
 
         // (Opcional) borrar el zip
@@ -477,15 +478,15 @@ public class JPlagDetectionService {
                 SubmissionDto team2Info = findSubmissionByDirectoryName(originalSubmissions, submission2Name);
 
                 // Debug: log team info
-                logger.info("Team info for comparison: {} -> {}, {} -> {}", 
-                           submission1Name, team1Info != null ? team1Info.getSubmissionId() : "null",
-                           submission2Name, team2Info != null ? team2Info.getSubmissionId() : "null");
+                logger.info("Team info for comparison: {} -> {}, {} -> {}",
+                        submission1Name, team1Info != null ? team1Info.getSubmissionId() : "null",
+                        submission2Name, team2Info != null ? team2Info.getSubmissionId() : "null");
 
                 // Construir URL del HTML de comparación individual
                 String comparisonHtmlUrl = null;
                 String submissionId1 = null;
                 String submissionId2 = null;
-                
+
                 if (team1Info != null && team2Info != null) {
                     submissionId1 = String.valueOf(team1Info.getSubmissionId());
                     submissionId2 = String.valueOf(team2Info.getSubmissionId());
@@ -493,13 +494,14 @@ public class JPlagDetectionService {
                     // Si no encontramos team info, extraer IDs de los nombres de directorio
                     submissionId1 = extractSubmissionIdFromDirectoryName(submission1Name);
                     submissionId2 = extractSubmissionIdFromDirectoryName(submission2Name);
-                    logger.warn("Using extracted IDs for comparison: {} -> {}, {} -> {}", 
-                               submission1Name, submissionId1, submission2Name, submissionId2);
+                    logger.warn("Using extracted IDs for comparison: {} -> {}, {} -> {}",
+                            submission1Name, submissionId1, submission2Name, submissionId2);
                 }
-                
+
                 // Siempre construir la URL si tenemos IDs
                 if (submissionId1 != null && submissionId2 != null) {
-                    comparisonHtmlUrl = "/reports/comparison/" + sessionId + "/" + submissionId1 + "-" + submissionId2 + ".html";
+                    comparisonHtmlUrl = "/reports/comparison/" + sessionId + "/" + submissionId1 + "-" + submissionId2
+                            + ".html";
                     logger.info("Generated comparison HTML URL: {}", comparisonHtmlUrl);
                 }
 
@@ -631,22 +633,22 @@ public class JPlagDetectionService {
         if (directoryName == null) {
             return null;
         }
-        
+
         // Buscar patrón submission_XX_team_YY
         java.util.regex.Pattern pattern = java.util.regex.Pattern.compile("submission_(\\d+)_team_\\d+");
         java.util.regex.Matcher matcher = pattern.matcher(directoryName);
-        
+
         if (matcher.find()) {
             return matcher.group(1); // Retorna el primer grupo capturado (el ID de submission)
         }
-        
+
         // Si no encuentra el patrón, intentar extraer cualquier número
         pattern = java.util.regex.Pattern.compile("(\\d+)");
         matcher = pattern.matcher(directoryName);
         if (matcher.find()) {
             return matcher.group(1);
         }
-        
+
         logger.warn("Could not extract submission ID from directory name: {}", directoryName);
         return null;
     }

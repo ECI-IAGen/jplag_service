@@ -45,7 +45,7 @@ public class ReportController {
             }
 
             Resource resource = new UrlResource(indexFile.toUri());
-            
+
             return ResponseEntity.ok()
                     .contentType(MediaType.TEXT_HTML)
                     .header(HttpHeaders.CONTENT_DISPOSITION, "inline; filename=\"jplag-report.html\"")
@@ -67,7 +67,7 @@ public class ReportController {
         try {
             String requestPath = request.getRequestURI();
             String assetPath = requestPath.substring(requestPath.indexOf(sessionId) + sessionId.length() + 1);
-            
+
             Path reportDir = Paths.get(reportsDirectory).resolve("report_" + sessionId);
             Path assetFile = reportDir.resolve(assetPath);
 
@@ -84,7 +84,7 @@ public class ReportController {
 
             Resource resource = new UrlResource(assetFile.toUri());
             String contentType = determineContentType(assetPath);
-            
+
             return ResponseEntity.ok()
                     .contentType(MediaType.parseMediaType(contentType))
                     .body(resource);
@@ -109,22 +109,22 @@ public class ReportController {
             Path comparisonFile = sessionComparationDir.resolve(comparisonId + ".html");
 
             if (!Files.exists(comparisonFile)) {
-                logger.warn("Comparison HTML not found for session {} and comparison {}: {}", 
-                           sessionId, comparisonId, comparisonFile);
+                logger.warn("Comparison HTML not found for session {} and comparison {}: {}",
+                        sessionId, comparisonId, comparisonFile);
                 return ResponseEntity.notFound().build();
             }
 
             Resource resource = new UrlResource(comparisonFile.toUri());
-            
+
             return ResponseEntity.ok()
                     .contentType(MediaType.TEXT_HTML)
-                    .header(HttpHeaders.CONTENT_DISPOSITION, 
-                           "inline; filename=\"comparison-" + comparisonId + ".html\"")
+                    .header(HttpHeaders.CONTENT_DISPOSITION,
+                            "inline; filename=\"comparison-" + comparisonId + ".html\"")
                     .body(resource);
 
         } catch (Exception e) {
-            logger.error("Error serving comparison report for session {} and comparison {}: {}", 
-                        sessionId, comparisonId, e.getMessage(), e);
+            logger.error("Error serving comparison report for session {} and comparison {}: {}",
+                    sessionId, comparisonId, e.getMessage(), e);
             return ResponseEntity.internalServerError().build();
         }
     }
@@ -183,11 +183,11 @@ public class ReportController {
 
         } catch (Exception e) {
             logger.error("Error checking reports health: {}", e.getMessage(), e);
-            
+
             java.util.Map<String, Object> health = new java.util.HashMap<>();
             health.put("status", "DOWN");
             health.put("error", e.getMessage());
-            
+
             return ResponseEntity.internalServerError().body(health);
         }
     }
