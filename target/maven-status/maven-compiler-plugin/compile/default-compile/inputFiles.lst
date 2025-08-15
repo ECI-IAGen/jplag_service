@@ -5,6 +5,7 @@ D:\Estudio\Universidad\Monitoria\final\jplag_service\src\main\java\com\eci\iagen
 D:\Estudio\Universidad\Monitoria\final\jplag_service\src\main\java\com\eci\iagen\jplag_service\dto\PlagiarismDetectionResponse.java
 D:\Estudio\Universidad\Monitoria\final\jplag_service\src\main\java\com\eci\iagen\jplag_service\dto\SubmissionDto.java
 D:\Estudio\Universidad\Monitoria\final\jplag_service\src\main\java\com\eci\iagen\jplag_service\JplagServiceApplication.java
+D:\Estudio\Universidad\Monitoria\final\jplag_service\src\main\java\com\eci\iagen\jplag_service\service\comparison\ComparisonHtmlGenerator.java
 D:\Estudio\Universidad\Monitoria\final\jplag_service\src\main\java\com\eci\iagen\jplag_service\service\GitService.java
 D:\Estudio\Universidad\Monitoria\final\jplag_service\src\main\java\com\eci\iagen\jplag_service\service\JPlagDetectionService.java
 D:\Estudio\Universidad\Monitoria\final\jplag_service\src\main\java\com\eci\iagen\jplag_service\service\SubmissionService.java

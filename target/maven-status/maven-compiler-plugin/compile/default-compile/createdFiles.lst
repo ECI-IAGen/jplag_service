@@ -1,3 +1,4 @@
+com\eci\iagen\jplag_service\service\comparison\ComparisonHtmlGenerator.class
 com\eci\iagen\jplag_service\service\GitService.class
 com\eci\iagen\jplag_service\controller\ReportController.class
 com\eci\iagen\jplag_service\dto\PlagiarismDetectionResponse.class

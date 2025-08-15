@@ -3,6 +3,7 @@ package com.eci.iagen.jplag_service.service;
 import com.eci.iagen.jplag_service.dto.PlagiarismDetectionRequest;
 import com.eci.iagen.jplag_service.dto.PlagiarismDetectionResponse;
 import com.eci.iagen.jplag_service.dto.SubmissionDto;
+import com.eci.iagen.jplag_service.service.comparison.ComparisonHtmlGenerator;
 import de.jplag.JPlag;
 import de.jplag.JPlagComparison;
 import de.jplag.JPlagResult;
@@ -35,6 +36,9 @@ public class JPlagDetectionService {
 
     @Autowired
     private GitService gitService;
+
+    @Autowired
+    private ComparisonHtmlGenerator comparisonHtmlGenerator;
 
     @Value("${jplag.temp-directory:./temp}")
     private String tempDirectory;
@@ -83,11 +87,11 @@ public class JPlagDetectionService {
             JPlagResult jplagResult = runJPlagAnalysis(clonedRepositories);
 
             // Generar reporte HTML usando JPlag nativo
-            String reportUrl = generateHtmlReport(jplagResult, sessionId);
+            String reportUrl = saveReportBundle(jplagResult, sessionId);
 
             // Convertir resultados a formato de respuesta
             List<PlagiarismDetectionResponse.ComparisonResult> comparisons = convertJPlagResultToComparisons(
-                    jplagResult, request.getSubmissions());
+                    jplagResult, request.getSubmissions(), sessionId);
 
             // Calcular estadísticas
             PlagiarismDetectionResponse.Statistics statistics = calculateStatistics(comparisons,
@@ -380,7 +384,7 @@ public class JPlagDetectionService {
     /**
      * Genera el reporte HTML usando la funcionalidad nativa de JPlag
      */
-    private String generateHtmlReport(JPlagResult jplagResult, String sessionId) throws IOException {
+    private String saveReportBundle(JPlagResult jplagResult, String sessionId) throws IOException {
         Path reportsDir = Paths.get(reportsDirectory).toAbsolutePath().normalize();
         Files.createDirectories(reportsDir);
 
@@ -400,6 +404,14 @@ public class JPlagDetectionService {
         Path index = reportDir.resolve("index.html");
         logger.info("JPlag HTML report unzipped at: {}", reportDir);
         logger.info("Report index exists? {} -> {}", Files.exists(index), index);
+
+        // Generar archivos HTML individuales de comparación
+        try {
+            comparisonHtmlGenerator.generateComparisonHtmlFiles(reportDir, sessionId);
+            logger.info("Generated individual comparison HTML files for session: {}", sessionId);
+        } catch (Exception e) {
+            logger.warn("Failed to generate individual comparison HTML files for session {}: {}", sessionId, e.getMessage());
+        }
 
         // (Opcional) borrar el zip
         try {
@@ -450,7 +462,7 @@ public class JPlagDetectionService {
      * Convierte los resultados de JPlag al formato de respuesta
      */
     private List<PlagiarismDetectionResponse.ComparisonResult> convertJPlagResultToComparisons(
-            JPlagResult jplagResult, List<SubmissionDto> originalSubmissions) {
+            JPlagResult jplagResult, List<SubmissionDto> originalSubmissions, String sessionId) {
 
         List<PlagiarismDetectionResponse.ComparisonResult> comparisons = new ArrayList<>();
 
@@ -464,6 +476,33 @@ public class JPlagDetectionService {
                 SubmissionDto team1Info = findSubmissionByDirectoryName(originalSubmissions, submission1Name);
                 SubmissionDto team2Info = findSubmissionByDirectoryName(originalSubmissions, submission2Name);
 
+                // Debug: log team info
+                logger.info("Team info for comparison: {} -> {}, {} -> {}", 
+                           submission1Name, team1Info != null ? team1Info.getSubmissionId() : "null",
+                           submission2Name, team2Info != null ? team2Info.getSubmissionId() : "null");
+
+                // Construir URL del HTML de comparación individual
+                String comparisonHtmlUrl = null;
+                String submissionId1 = null;
+                String submissionId2 = null;
+                
+                if (team1Info != null && team2Info != null) {
+                    submissionId1 = String.valueOf(team1Info.getSubmissionId());
+                    submissionId2 = String.valueOf(team2Info.getSubmissionId());
+                } else {
+                    // Si no encontramos team info, extraer IDs de los nombres de directorio
+                    submissionId1 = extractSubmissionIdFromDirectoryName(submission1Name);
+                    submissionId2 = extractSubmissionIdFromDirectoryName(submission2Name);
+                    logger.warn("Using extracted IDs for comparison: {} -> {}, {} -> {}", 
+                               submission1Name, submissionId1, submission2Name, submissionId2);
+                }
+                
+                // Siempre construir la URL si tenemos IDs
+                if (submissionId1 != null && submissionId2 != null) {
+                    comparisonHtmlUrl = "/reports/comparison/" + sessionId + "/" + submissionId1 + "-" + submissionId2 + ".html";
+                    logger.info("Generated comparison HTML URL: {}", comparisonHtmlUrl);
+                }
+
                 PlagiarismDetectionResponse.ComparisonResult result = new PlagiarismDetectionResponse.ComparisonResult(
                         submission1Name,
                         submission2Name,
@@ -471,7 +510,10 @@ public class JPlagDetectionService {
                         team2Info != null ? team2Info.getTeamName() : "Unknown Team",
                         comparison.similarity(),
                         comparison.getNumberOfMatchedTokens(),
-                        "completed");
+                        "completed",
+                        comparisonHtmlUrl,
+                        team1Info != null ? team1Info.getSubmissionId() : null,
+                        team2Info != null ? team2Info.getSubmissionId() : null);
 
                 comparisons.add(result);
 
@@ -579,5 +621,33 @@ public class JPlagDetectionService {
         } catch (Exception e) {
             logger.debug("Error cleaning up directory {}: {}", directory, e.getMessage());
         }
+    }
+
+    /**
+     * Extrae el ID de submission de un nombre de directorio
+     * Ejemplo: "submission_19_team_17" -> "19"
+     */
+    private String extractSubmissionIdFromDirectoryName(String directoryName) {
+        if (directoryName == null) {
+            return null;
+        }
+        
+        // Buscar patrón submission_XX_team_YY
+        java.util.regex.Pattern pattern = java.util.regex.Pattern.compile("submission_(\\d+)_team_\\d+");
+        java.util.regex.Matcher matcher = pattern.matcher(directoryName);
+        
+        if (matcher.find()) {
+            return matcher.group(1); // Retorna el primer grupo capturado (el ID de submission)
+        }
+        
+        // Si no encuentra el patrón, intentar extraer cualquier número
+        pattern = java.util.regex.Pattern.compile("(\\d+)");
+        matcher = pattern.matcher(directoryName);
+        if (matcher.find()) {
+            return matcher.group(1);
+        }
+        
+        logger.warn("Could not extract submission ID from directory name: {}", directoryName);
+        return null;
     }
 }

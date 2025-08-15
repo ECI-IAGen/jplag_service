@@ -10,7 +10,8 @@ public class PlagiarismDetectionRequest {
     private String assignmentTitle;
     private List<SubmissionDto> submissions;
 
-    public PlagiarismDetectionRequest() {}
+    public PlagiarismDetectionRequest() {
+    }
 
     public PlagiarismDetectionRequest(Long assignmentId, String assignmentTitle, List<SubmissionDto> submissions) {
         this.assignmentId = assignmentId;

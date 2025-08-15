@@ -14,7 +14,8 @@ public class PlagiarismDetectionResponse {
     private String message;
     private Statistics statistics;
 
-    public PlagiarismDetectionResponse() {}
+    public PlagiarismDetectionResponse() {
+    }
 
     public Long getAssignmentId() {
         return assignmentId;
@@ -80,11 +81,15 @@ public class PlagiarismDetectionResponse {
         private double similarity;
         private int matchedTokens;
         private String status;
+        private String comparisonHtmlUrl;
+        private Long submissionId1;
+        private Long submissionId2;
 
-        public ComparisonResult() {}
+        public ComparisonResult() {
+        }
 
-        public ComparisonResult(String submission1, String submission2, String team1, String team2, 
-                              double similarity, int matchedTokens, String status) {
+        public ComparisonResult(String submission1, String submission2, String team1, String team2,
+                double similarity, int matchedTokens, String status) {
             this.submission1 = submission1;
             this.submission2 = submission2;
             this.team1 = team1;
@@ -92,6 +97,21 @@ public class PlagiarismDetectionResponse {
             this.similarity = similarity;
             this.matchedTokens = matchedTokens;
             this.status = status;
+        }
+
+        public ComparisonResult(String submission1, String submission2, String team1, String team2,
+                double similarity, int matchedTokens, String status, String comparisonHtmlUrl,
+                Long submissionId1, Long submissionId2) {
+            this.submission1 = submission1;
+            this.submission2 = submission2;
+            this.team1 = team1;
+            this.team2 = team2;
+            this.similarity = similarity;
+            this.matchedTokens = matchedTokens;
+            this.status = status;
+            this.comparisonHtmlUrl = comparisonHtmlUrl;
+            this.submissionId1 = submissionId1;
+            this.submissionId2 = submissionId2;
         }
 
         public String getSubmission1() {
@@ -149,6 +169,30 @@ public class PlagiarismDetectionResponse {
         public void setStatus(String status) {
             this.status = status;
         }
+
+        public String getComparisonHtmlUrl() {
+            return comparisonHtmlUrl;
+        }
+
+        public void setComparisonHtmlUrl(String comparisonHtmlUrl) {
+            this.comparisonHtmlUrl = comparisonHtmlUrl;
+        }
+
+        public Long getSubmissionId1() {
+            return submissionId1;
+        }
+
+        public void setSubmissionId1(Long submissionId1) {
+            this.submissionId1 = submissionId1;
+        }
+
+        public Long getSubmissionId2() {
+            return submissionId2;
+        }
+
+        public void setSubmissionId2(Long submissionId2) {
+            this.submissionId2 = submissionId2;
+        }
     }
 
     public static class Statistics {
@@ -158,10 +202,11 @@ public class PlagiarismDetectionResponse {
         private double maxSimilarity;
         private double minSimilarity;
 
-        public Statistics() {}
+        public Statistics() {
+        }
 
-        public Statistics(int totalSubmissions, int totalComparisons, double averageSimilarity, 
-                         double maxSimilarity, double minSimilarity) {
+        public Statistics(int totalSubmissions, int totalComparisons, double averageSimilarity,
+                double maxSimilarity, double minSimilarity) {
             this.totalSubmissions = totalSubmissions;
             this.totalComparisons = totalComparisons;
             this.averageSimilarity = averageSimilarity;
