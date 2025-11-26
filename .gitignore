@@ -29,6 +29,7 @@ Thumbs.db
 # Generados
 reports/
 temp/
+comparation/
 
 ### NetBeans ###
 /nbproject/private/
